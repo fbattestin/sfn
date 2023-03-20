@@ -1,0 +1,39 @@
+import boto3
+import time
+
+def print_new_events(execution_arn, printed_events):
+    client = boto3.client('stepfunctions')
+    next_token = None
+    
+    while True:
+        response = client.get_execution_history(
+            executionArn=execution_arn,
+            reverseOrder=True,
+            maxResults=10,
+            nextToken=next_token
+        )
+        
+        for event in reversed(response['events']):
+            event_id = event['id']
+            if event_id not in printed_events:
+                printed_events.append(event_id)
+                event_type = event['type']
+                event_timestamp = event['timestamp']
+                print(f"{event_type} event at {event_timestamp}")
+                
+                if event_type == 'ExecutionFailed':
+                    failed_event_details = client.get_execution_history(
+                        executionArn=execution_arn,
+                        reverseOrder=True,
+                        maxResults=1,
+                        nextToken=None,
+                        includeExecutionData=True,
+                        eventType='ExecutionFailed'
+                    )
+                    failure_cause = failed_event_details['events'][0]['executionFailedEventDetails']['cause']
+                    print(f"Event failed with cause: {failure_cause}")
+                    
+        if 'nextToken' in response:
+            next_token = response['nextToken']
+        else:
+            time.sleep(5)
