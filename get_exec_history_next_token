@@ -1,0 +1,67 @@
+import boto3
+import time
+
+# Configura o cliente da AWS Step Functions
+client = boto3.client('stepfunctions')
+
+# Define o ARN da State Machine
+state_machine_arn = 'arn:aws:states:us-west-2:123456789012:stateMachine:MyStateMachine'
+
+# Obtém a lista de execuções da State Machine com o status 'RUNNING'
+response = client.list_executions(
+    stateMachineArn=state_machine_arn,
+    statusFilter='RUNNING'
+)
+
+# Obtém o ARN da execução mais recente da State Machine
+if len(response['executions']) > 0:
+    execution_arn = response['executions'][0]['executionArn']
+else:
+    print('Nenhuma execução encontrada.')
+    exit()
+
+# Inicializa o token de paginação como None
+next_token = None
+
+# Inicia o loop infinito para acompanhar o histórico de eventos em tempo real
+while True:
+    # Chama a função get_execution_history para obter o histórico da execução especificada
+    response = client.get_execution_history(
+        executionArn=execution_arn,
+        nextToken=next_token
+    )
+
+    # Itera sobre cada evento do histórico e extrai informações relevantes
+    for event in response['events']:
+        # Obtém o timestamp do evento
+        timestamp = event['timestamp']
+
+        # Obtém o tipo do evento
+        event_type = event['type']
+
+        # Obtém o nome do evento
+        event_name = event.get('stateEnteredEventDetails', {}).get('name')
+
+        # Obtém o status do evento
+        event_status = event.get('stateExitedEventDetails', {}).get('status')
+
+        # Obtém a mensagem de detalhes do evento
+        details = event.get('executionSucceededEventDetails', {}).get('output')
+
+        # Exibe as informações do evento
+        print(f'Timestamp: {timestamp}\n'
+              f'Tipo do evento: {event_type}\n'
+              f'Nome do evento: {event_name}\n'
+              f'Status do evento: {event_status}\n'
+              f'Detalhes: {details}\n')
+
+    # Define o token de paginação para a próxima chamada ao histórico de eventos
+    next_token = response.get('nextToken')
+
+    # Verifica se há mais páginas de eventos a serem recuperadas
+    if next_token is None:
+        # Aguarda 5 segundos antes de fazer a próxima chamada para o histórico de eventos
+        time.sleep(5)
+    else:
+        # Aguarda 1 segundo antes de fazer a próxima chamada para o histórico de eventos
+        time.sleep(1)
