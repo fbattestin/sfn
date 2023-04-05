@@ -1,0 +1,5 @@
+{
+  "project_name": "meu-projeto",
+  "project_path_command": "{{ 'python -c \"import os; print(os.path.abspath(os.path.join(os.path.dirname(__file__), \'..\')));\"' | shell }}",
+  "project_path": "{{ project_path_command }}/{{ cookiecutter.project_name }}"
+}
