@@ -1,5 +1,5 @@
 {
   "project_name": "meu-projeto",
-  "project_path_command": "{{ 'cmd.exe /c "python -c \\"import os; print(os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), \'..\')));\\""' | replace('\r\n', '') }}",
+  "project_path_command": "{{ 'cmd.exe /c python -c \\"import os; print(os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), \'..\')));\\"' | replace('\r\n', '') }}",
   "project_path": "{{ project_path_command }}\\{{ cookiecutter.project_name }}"
 }
